@@ -15,7 +15,7 @@ export function TotalPrice({ finalPrice, isYearly }: TotalPriceProps) {
         {`Total (${period})`}
       </strong>
       <span className="text-base leading-5 font-bold text-purple sm:text-xl">
-        {priceFormatter(finalPrice, isYearly)}
+        {priceFormatter(finalPrice)}
       </span>
     </div>
   )
