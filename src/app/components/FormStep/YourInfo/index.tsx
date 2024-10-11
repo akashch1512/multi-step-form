@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useFormStep } from "../../../hooks/use-form-step";
 import { useForm } from "../../../hooks/use-form";
 import { ACTIONS } from "../../../contexts/form";
@@ -39,53 +39,86 @@ export function YourInfo() {
 
   const { handleNextStep, handlePreviousStep } = useFormStep();
 
+  // Debounced values for inputs
+  const [debouncedName, setDebouncedName] = useState(nameField.value);
+  const [debouncedEmail, setDebouncedEmail] = useState(emailField.value);
+  const [debouncedPhoneNumber, setDebouncedPhoneNumber] = useState(phoneNumberField.value);
+  const [debouncedCollegeName, setDebouncedCollegeName] = useState(collegeNameField.value);
+  const [debouncedWhatYouDo, setDebouncedWhatYouDo] = useState(whatYouDoField.value);
+  const [debouncedDepartment, setDebouncedDepartment] = useState(departmentField.value);
+  const [debouncedBranchName, setDebouncedBranchName] = useState(branchNameField.value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedName(nameField.value);
+      setDebouncedEmail(emailField.value);
+      setDebouncedPhoneNumber(phoneNumberField.value);
+      setDebouncedCollegeName(collegeNameField.value);
+      setDebouncedWhatYouDo(whatYouDoField.value);
+      setDebouncedDepartment(departmentField.value);
+      setDebouncedBranchName(branchNameField.value);
+    }, 300); // Debounce time of 300ms
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [
+    nameField.value,
+    emailField.value,
+    phoneNumberField.value,
+    collegeNameField.value,
+    whatYouDoField.value,
+    departmentField.value,
+    branchNameField.value,
+  ]);
+
   function validateForm() {
     let formHasError = false;
 
     // Existing validations
-    if (!nameField.value) {
+    if (!debouncedName) {
       dispatchNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'Name is required' });
       formHasError = true;
     }
 
-    if (!emailField.value) {
+    if (!debouncedEmail) {
       dispatchEmailField({ type: ACTIONS.SET_ERROR, errorMessage: 'Email is required' });
       formHasError = true;
     } else {
       const emailRegex = /\S+@\S+\.\S+/;
-      if (!emailRegex.test(emailField.value)) {
+      if (!emailRegex.test(debouncedEmail)) {
         dispatchEmailField({ type: ACTIONS.SET_ERROR, errorMessage: 'Email is invalid' });
         formHasError = true;
       }
     }
 
-    if (!phoneNumberField.value) {
+    if (!debouncedPhoneNumber) {
       dispatchPhoneNumberField({ type: ACTIONS.SET_ERROR, errorMessage: 'Phone number is required' });
       formHasError = true;
     } else {
-      if (phoneNumberField.value.length < 6) {
+      if (debouncedPhoneNumber.length < 6) {
         dispatchPhoneNumberField({ type: ACTIONS.SET_ERROR, errorMessage: 'Phone number is invalid' });
         formHasError = true;
       }
     }
 
     // New field validations
-    if (!collegeNameField.value) {
+    if (!debouncedCollegeName) {
       dispatchCollegeNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'College name is required' });
       formHasError = true;
     }
 
-    if (!whatYouDoField.value) {
+    if (!debouncedWhatYouDo) {
       dispatchWhatYouDoField({ type: ACTIONS.SET_ERROR, errorMessage: 'What you do is required' });
       formHasError = true;
     }
 
-    if (!departmentField.value) {
+    if (!debouncedDepartment) {
       dispatchDepartmentField({ type: ACTIONS.SET_ERROR, errorMessage: 'Department is required' });
       formHasError = true;
     }
 
-    if (!branchNameField.value) {
+    if (!debouncedBranchName) {
       dispatchBranchNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'Branch name is required' });
       formHasError = true;
     }
@@ -97,17 +130,17 @@ export function YourInfo() {
   function handleGoForwardStep() {
     const isValid = validateForm();
     if (isValid) {
-      const formData: FormData = { // Specify the type for the formData variable
-        name: nameField.value,
-        email: emailField.value,
-        phoneNumber: phoneNumberField.value,
-        collegeName: collegeNameField.value,
-        whatYouDo: whatYouDoField.value,
-        department: departmentField.value,
-        branchName: branchNameField.value,
+      const formData: FormData = {
+        name: debouncedName,
+        email: debouncedEmail,
+        phoneNumber: debouncedPhoneNumber,
+        collegeName: debouncedCollegeName,
+        whatYouDo: debouncedWhatYouDo,
+        department: debouncedDepartment,
+        branchName: debouncedBranchName,
       };
 
-      // Store the formData for instance (you can replace this with your logic)
+      // Store the formData for instance
       console.log('Form Data:', formData); // Use this to handle the data as needed
 
       handleNextStep(); // Move to the next step after successful validation
@@ -126,7 +159,7 @@ export function YourInfo() {
           <TextInput
             label="Name"
             placeholder="e.g. Akash Bapurao Chaudhari"
-            value={nameField.value}
+            value={debouncedName} // Use the debounced value
             onChange={(name, value) => dispatchNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={nameField.errorMessage}
             clearError={() => dispatchNameField({ type: ACTIONS.CLEAR_ERROR })}
@@ -136,7 +169,7 @@ export function YourInfo() {
           <TextInput
             label="Email Address"
             placeholder="e.g. akash@domain.com"
-            value={emailField.value}
+            value={debouncedEmail} // Use the debounced value
             onChange={(name, value) => dispatchEmailField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={emailField.errorMessage}
             clearError={() => dispatchEmailField({ type: ACTIONS.CLEAR_ERROR })}
@@ -146,7 +179,7 @@ export function YourInfo() {
           <TextInput
             label="Phone Number"
             placeholder="e.g. +91 1234 567 890"
-            value={phoneNumberField.value}
+            value={debouncedPhoneNumber} // Use the debounced value
             onChange={(name, value) => dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={phoneNumberField.errorMessage}
             clearError={() => dispatchPhoneNumberField({ type: ACTIONS.CLEAR_ERROR })}
@@ -156,7 +189,7 @@ export function YourInfo() {
           <TextInput
             label="College Name"
             placeholder="e.g. Jawaharlal Nehru Engineering College"
-            value={collegeNameField.value}
+            value={debouncedCollegeName} // Use the debounced value
             onChange={(name, value) => dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={collegeNameField.errorMessage}
             clearError={() => dispatchCollegeNameField({ type: ACTIONS.CLEAR_ERROR })}
@@ -166,7 +199,7 @@ export function YourInfo() {
           <TextInput
             label="What You Do"
             placeholder="e.g. Student, Faculty, Business, Entrepreneur"
-            value={whatYouDoField.value}
+            value={debouncedWhatYouDo} // Use the debounced value
             onChange={(name, value) => dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={whatYouDoField.errorMessage}
             clearError={() => dispatchWhatYouDoField({ type: ACTIONS.CLEAR_ERROR })}
@@ -176,7 +209,7 @@ export function YourInfo() {
           <TextInput
             label="Department"
             placeholder="e.g. Mechanical"
-            value={departmentField.value}
+            value={debouncedDepartment} // Use the debounced value
             onChange={(name, value) => dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={departmentField.errorMessage}
             clearError={() => dispatchDepartmentField({ type: ACTIONS.CLEAR_ERROR })}
@@ -186,7 +219,7 @@ export function YourInfo() {
           <TextInput
             label="Branch Name"
             placeholder="e.g. Robotics"
-            value={branchNameField.value}
+            value={debouncedBranchName} // Use the debounced value
             onChange={(name, value) => dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={branchNameField.errorMessage}
             clearError={() => dispatchBranchNameField({ type: ACTIONS.CLEAR_ERROR })}
