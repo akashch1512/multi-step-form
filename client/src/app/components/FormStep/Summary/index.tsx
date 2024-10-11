@@ -52,7 +52,7 @@ export function Summary() {
         moveToStep(1);
       }, 4000);
     }
-  }, [submitted, moveToStep]);
+  }, [submitted, moveToStep, clearForm]);  
 
   if (submitted) {
     return <PostConfirmation />;
