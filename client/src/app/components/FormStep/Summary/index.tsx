@@ -7,44 +7,37 @@ import Form from "../../Form";
 import { PostConfirmation } from "./PostConfirmation";
 import { TotalPrice } from "./TotalPrice";
 import { AddOnItem } from "./AddOnItem";
-import axios, { AxiosError } from 'axios';  // Import AxiosError
+import axios from 'axios';  // Already imported
 
 export function Summary() {
   const [submitted, setSubmitted] = useState(false);
-  const { handlePreviousStep, moveToStep } = useFormStep();
-  const { addOns, selectedPlan, isYearly, clearForm, ...userInfo } = useForm();
 
-  // Function to handle submission and send data to the server
+  const { handlePreviousStep, moveToStep } = useFormStep();
+  const { addOns, selectedPlan, isYearly, clearForm, ...userInfo } = useForm(); // Destructure user info from the form context
+
+  // New function to handle submission and send data to server
   async function handleGoForwardStep() {
     try {
+      // Combine the user info from the first step with the summary data
       const userData = {
-        ...userInfo,
-        plan: selectedPlan?.name || "No Plan Selected",
+        ...userInfo, // Spread operator to include all user data from the first step
+        plan: selectedPlan?.name || "No Plan Selected", // Add fallback for plan name
         isYearly: isYearly,
         addOns: addOns.map(addOn => ({
           title: addOn.title,
           price: addOn.price,
         })),
-        totalPrice: (selectedPlan?.price || 0) + addOns.reduce((acc, addOn) => acc + addOn.price, 0),
+        totalPrice: (selectedPlan?.price || 0) + addOns.reduce((acc, addOn) => acc + addOn.price, 0), // Add fallback for price
       };
 
-      const response = await axios.post('https://server-dusky-eight.vercel.app/api/save-data', userData, {
-        timeout: 5000,
-      });
-      console.log('Server response:', response.data);
+      // Send POST request to server
+      const response = await axios.post('https://server-nlohb1uk6-aakash-choudharis-projects.vercel.app/api/save-data', userData);
+      console.log('Server response:', response.data); // Log the response from the server
+
+      // If successful, mark the form as submitted
       setSubmitted(true);
     } catch (error) {
-      const axiosError = error as AxiosError;  // Assert error as AxiosError
-      console.error('Error saving data to server:', axiosError);
-      
-      if (axiosError.response) {
-        console.error('Response data:', axiosError.response.data);
-        console.error('Response status:', axiosError.response.status);
-      } else if (axiosError.request) {
-        console.error('Request data:', axiosError.request);
-      } else {
-        console.error('Error message:', axiosError.message);
-      }
+      console.error('Error saving data to server:', error);
     }
   }
 
@@ -59,14 +52,15 @@ export function Summary() {
         moveToStep(1);
       }, 4000);
     }
-  }, [submitted, moveToStep, clearForm]);
+  }, [submitted, moveToStep, clearForm]);  
 
   if (submitted) {
     return <PostConfirmation />;
   }
 
+  // Add null checks for selectedPlan before calculating prices
   const addOnsTotalPrice = addOns.reduce((acc, addOn) => acc + addOn.price, 0);
-  const finalPrice = (selectedPlan?.price || 0) + addOnsTotalPrice;
+  const finalPrice = (selectedPlan?.price || 0) + addOnsTotalPrice; // Ensure selectedPlan is not null
 
   return (
     <Fragment>
@@ -89,7 +83,7 @@ export function Summary() {
               </button>
             </div>
             <span className="text-sm leading-5 font-bold text-denim sm:text-base">
-              {priceFormatter(selectedPlan?.price || 0)}
+              {priceFormatter(selectedPlan?.price || 0)} {/* Add fallback */}
             </span>
           </div>
 
@@ -113,7 +107,7 @@ export function Summary() {
         />
       </Form.Card>
       <Footer
-        handleGoForwardStep={handleGoForwardStep}
+        handleGoForwardStep={handleGoForwardStep} // Submitting data when clicking next
         handleGoBack={handlePreviousStep}
       />
     </Fragment>
