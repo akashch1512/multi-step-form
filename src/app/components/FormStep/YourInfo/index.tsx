@@ -39,86 +39,91 @@ export function YourInfo() {
 
   const { handleNextStep, handlePreviousStep } = useFormStep();
 
-  // Debounced values for inputs
-  const [debouncedName, setDebouncedName] = useState(nameField.value);
-  const [debouncedEmail, setDebouncedEmail] = useState(emailField.value);
-  const [debouncedPhoneNumber, setDebouncedPhoneNumber] = useState(phoneNumberField.value);
-  const [debouncedCollegeName, setDebouncedCollegeName] = useState(collegeNameField.value);
-  const [debouncedWhatYouDo, setDebouncedWhatYouDo] = useState(whatYouDoField.value);
-  const [debouncedDepartment, setDebouncedDepartment] = useState(departmentField.value);
-  const [debouncedBranchName, setDebouncedBranchName] = useState(branchNameField.value);
+  // Store values immediately for real-time feedback
+  const [name, setName] = useState(nameField.value);
+  const [email, setEmail] = useState(emailField.value);
+  const [phoneNumber, setPhoneNumber] = useState(phoneNumberField.value);
+  const [collegeName, setCollegeName] = useState(collegeNameField.value);
+  const [whatYouDo, setWhatYouDo] = useState(whatYouDoField.value);
+  const [department, setDepartment] = useState(departmentField.value);
+  const [branchName, setBranchName] = useState(branchNameField.value);
+
+  // Debounced values for validation
+  const [debouncedValues, setDebouncedValues] = useState({
+    name,
+    email,
+    phoneNumber,
+    collegeName,
+    whatYouDo,
+    department,
+    branchName,
+  });
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedName(nameField.value);
-      setDebouncedEmail(emailField.value);
-      setDebouncedPhoneNumber(phoneNumberField.value);
-      setDebouncedCollegeName(collegeNameField.value);
-      setDebouncedWhatYouDo(whatYouDoField.value);
-      setDebouncedDepartment(departmentField.value);
-      setDebouncedBranchName(branchNameField.value);
-    }, 300); // Debounce time of 300ms
+      setDebouncedValues({
+        name,
+        email,
+        phoneNumber,
+        collegeName,
+        whatYouDo,
+        department,
+        branchName,
+      });
+    }, 150); // Shorter debounce time
 
     return () => {
       clearTimeout(handler);
     };
-  }, [
-    nameField.value,
-    emailField.value,
-    phoneNumberField.value,
-    collegeNameField.value,
-    whatYouDoField.value,
-    departmentField.value,
-    branchNameField.value,
-  ]);
+  }, [name, email, phoneNumber, collegeName, whatYouDo, department, branchName]);
 
   function validateForm() {
     let formHasError = false;
 
     // Existing validations
-    if (!debouncedName) {
+    if (!debouncedValues.name) {
       dispatchNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'Name is required' });
       formHasError = true;
     }
 
-    if (!debouncedEmail) {
+    if (!debouncedValues.email) {
       dispatchEmailField({ type: ACTIONS.SET_ERROR, errorMessage: 'Email is required' });
       formHasError = true;
     } else {
       const emailRegex = /\S+@\S+\.\S+/;
-      if (!emailRegex.test(debouncedEmail)) {
+      if (!emailRegex.test(debouncedValues.email)) {
         dispatchEmailField({ type: ACTIONS.SET_ERROR, errorMessage: 'Email is invalid' });
         formHasError = true;
       }
     }
 
-    if (!debouncedPhoneNumber) {
+    if (!debouncedValues.phoneNumber) {
       dispatchPhoneNumberField({ type: ACTIONS.SET_ERROR, errorMessage: 'Phone number is required' });
       formHasError = true;
     } else {
-      if (debouncedPhoneNumber.length < 6) {
+      if (debouncedValues.phoneNumber.length < 6) {
         dispatchPhoneNumberField({ type: ACTIONS.SET_ERROR, errorMessage: 'Phone number is invalid' });
         formHasError = true;
       }
     }
 
     // New field validations
-    if (!debouncedCollegeName) {
+    if (!debouncedValues.collegeName) {
       dispatchCollegeNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'College name is required' });
       formHasError = true;
     }
 
-    if (!debouncedWhatYouDo) {
+    if (!debouncedValues.whatYouDo) {
       dispatchWhatYouDoField({ type: ACTIONS.SET_ERROR, errorMessage: 'What you do is required' });
       formHasError = true;
     }
 
-    if (!debouncedDepartment) {
+    if (!debouncedValues.department) {
       dispatchDepartmentField({ type: ACTIONS.SET_ERROR, errorMessage: 'Department is required' });
       formHasError = true;
     }
 
-    if (!debouncedBranchName) {
+    if (!debouncedValues.branchName) {
       dispatchBranchNameField({ type: ACTIONS.SET_ERROR, errorMessage: 'Branch name is required' });
       formHasError = true;
     }
@@ -131,13 +136,13 @@ export function YourInfo() {
     const isValid = validateForm();
     if (isValid) {
       const formData: FormData = {
-        name: debouncedName,
-        email: debouncedEmail,
-        phoneNumber: debouncedPhoneNumber,
-        collegeName: debouncedCollegeName,
-        whatYouDo: debouncedWhatYouDo,
-        department: debouncedDepartment,
-        branchName: debouncedBranchName,
+        name: debouncedValues.name,
+        email: debouncedValues.email,
+        phoneNumber: debouncedValues.phoneNumber,
+        collegeName: debouncedValues.collegeName,
+        whatYouDo: debouncedValues.whatYouDo,
+        department: debouncedValues.department,
+        branchName: debouncedValues.branchName,
       };
 
       // Store the formData for instance
@@ -159,8 +164,11 @@ export function YourInfo() {
           <TextInput
             label="Name"
             placeholder="e.g. Akash Bapurao Chaudhari"
-            value={debouncedName} // Use the debounced value
-            onChange={(name, value) => dispatchNameField({ type: ACTIONS.SET_VALUE, value })}
+            value={name} // Immediate update
+            onChange={(name, value) => {
+              setName(value);
+              dispatchNameField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={nameField.errorMessage}
             clearError={() => dispatchNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={nameField.hasError}
@@ -169,8 +177,11 @@ export function YourInfo() {
           <TextInput
             label="Email Address"
             placeholder="e.g. akash@domain.com"
-            value={debouncedEmail} // Use the debounced value
-            onChange={(name, value) => dispatchEmailField({ type: ACTIONS.SET_VALUE, value })}
+            value={email} // Immediate update
+            onChange={(name, value) => {
+              setEmail(value);
+              dispatchEmailField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={emailField.errorMessage}
             clearError={() => dispatchEmailField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={emailField.hasError}
@@ -179,8 +190,11 @@ export function YourInfo() {
           <TextInput
             label="Phone Number"
             placeholder="e.g. +91 1234 567 890"
-            value={debouncedPhoneNumber} // Use the debounced value
-            onChange={(name, value) => dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value })}
+            value={phoneNumber} // Immediate update
+            onChange={(name, value) => {
+              setPhoneNumber(value);
+              dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={phoneNumberField.errorMessage}
             clearError={() => dispatchPhoneNumberField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={phoneNumberField.hasError}
@@ -189,8 +203,11 @@ export function YourInfo() {
           <TextInput
             label="College Name"
             placeholder="e.g. Jawaharlal Nehru Engineering College"
-            value={debouncedCollegeName} // Use the debounced value
-            onChange={(name, value) => dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value })}
+            value={collegeName} // Immediate update
+            onChange={(name, value) => {
+              setCollegeName(value);
+              dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={collegeNameField.errorMessage}
             clearError={() => dispatchCollegeNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={collegeNameField.hasError}
@@ -199,8 +216,11 @@ export function YourInfo() {
           <TextInput
             label="What You Do"
             placeholder="e.g. Student, Faculty, Business, Entrepreneur"
-            value={debouncedWhatYouDo} // Use the debounced value
-            onChange={(name, value) => dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value })}
+            value={whatYouDo} // Immediate update
+            onChange={(name, value) => {
+              setWhatYouDo(value);
+              dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={whatYouDoField.errorMessage}
             clearError={() => dispatchWhatYouDoField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={whatYouDoField.hasError}
@@ -208,9 +228,12 @@ export function YourInfo() {
           />
           <TextInput
             label="Department"
-            placeholder="e.g. Mechanical"
-            value={debouncedDepartment} // Use the debounced value
-            onChange={(name, value) => dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value })}
+            placeholder="e.g. Computer Science"
+            value={department} // Immediate update
+            onChange={(name, value) => {
+              setDepartment(value);
+              dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={departmentField.errorMessage}
             clearError={() => dispatchDepartmentField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={departmentField.hasError}
@@ -218,20 +241,37 @@ export function YourInfo() {
           />
           <TextInput
             label="Branch Name"
-            placeholder="e.g. Robotics"
-            value={debouncedBranchName} // Use the debounced value
-            onChange={(name, value) => dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value })}
+            placeholder="e.g. Information Technology"
+            value={branchName} // Immediate update
+            onChange={(name, value) => {
+              setBranchName(value);
+              dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value });
+            }}
             errorMessage={branchNameField.errorMessage}
             clearError={() => dispatchBranchNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={branchNameField.hasError}
             name="branchName"
           />
         </div>
+
+        {/* Manual Button Implementation */}
+        <div className="flex justify-between mt-5">
+          <button
+            type="button"
+            onClick={handlePreviousStep}
+            className="px-4 py-2 bg-gray-300 text-black rounded"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={handleGoForwardStep}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Next
+          </button>
+        </div>
       </Form.Card>
-      <Footer
-        handleGoForwardStep={handleGoForwardStep}
-        handleGoBack={handlePreviousStep}
-      />
     </Fragment>
   );
 }
