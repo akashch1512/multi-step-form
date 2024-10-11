@@ -61,7 +61,7 @@ export function AddOnOption({ addOn, isSelected, handleSelectAddon, handleUnsele
         <span className="text-xs text-grey font-normal sm:text-sm">{addOn.description}</span>
       </div>
       <span className="text-xs text-purple font-normal leading-5 ml-auto sm:text-sm ">
-        {"+" + priceFormatter(addOn.price[planType], isYearly)}
+        {"+" + priceFormatter(addOn.price[planType])}
       </span>
     </button>
   )
