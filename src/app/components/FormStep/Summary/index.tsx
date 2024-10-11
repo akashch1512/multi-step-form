@@ -13,24 +13,26 @@ export function Summary() {
   const [submitted, setSubmitted] = useState(false);
 
   const { handlePreviousStep, moveToStep } = useFormStep();
-  const { addOns, selectedPlan, isYearly, clearForm } = useForm();
+  const { addOns, selectedPlan, isYearly, clearForm, ...userInfo } = useForm(); // Destructure user info from the form context
 
   // New function to handle submission and send data to server
   async function handleGoForwardStep() {
     try {
+      // Combine the user info from the first step with the summary data
       const userData = {
-        plan: selectedPlan.name,
+        ...userInfo, // Spread operator to include all user data from the first step
+        plan: selectedPlan?.name || "No Plan Selected", // Add fallback for plan name
         isYearly: isYearly,
         addOns: addOns.map(addOn => ({
           title: addOn.title,
-          price: addOn.price
+          price: addOn.price,
         })),
-        totalPrice: selectedPlan.price + addOns.reduce((acc, addOn) => acc + addOn.price, 0)
+        totalPrice: (selectedPlan?.price || 0) + addOns.reduce((acc, addOn) => acc + addOn.price, 0), // Add fallback for price
       };
 
       // Send POST request to server
       const response = await axios.post('http://localhost:5000/api/save-data', userData);
-      console.log('Server response:', response.data);  // Log the response from the server
+      console.log('Server response:', response.data); // Log the response from the server
 
       // If successful, mark the form as submitted
       setSubmitted(true);
@@ -46,7 +48,6 @@ export function Summary() {
   useEffect(() => {
     if (submitted) {
       clearForm();
-
       setTimeout(() => {
         moveToStep(1);
       }, 4000);
@@ -54,13 +55,12 @@ export function Summary() {
   }, [submitted, moveToStep]);
 
   if (submitted) {
-    return (
-      <PostConfirmation />
-    );
+    return <PostConfirmation />;
   }
 
+  // Add null checks for selectedPlan before calculating prices
   const addOnsTotalPrice = addOns.reduce((acc, addOn) => acc + addOn.price, 0);
-  const finalPrice = selectedPlan.price + addOnsTotalPrice;
+  const finalPrice = (selectedPlan?.price || 0) + addOnsTotalPrice; // Ensure selectedPlan is not null
 
   return (
     <Fragment>
@@ -69,12 +69,11 @@ export function Summary() {
           title="Finishing up"
           description="Double-check everything looks OK before confirming."
         />
-
         <div className="mt-5 flex flex-col gap-3 bg-very-light-grey rounded-lg p-4 sm:px-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1 items-start">
               <strong className="text-sm font-medium text-denim sm:text-base">
-                {`${selectedPlan.name} (${isYearly ? 'Yearly' : 'Monthly'})`}
+                {`${selectedPlan?.name || 'No Plan Selected'} (${isYearly ? 'Yearly' : 'Monthly'})`}
               </strong>
               <button
                 className="text-sm leading-5 font-normal text-grey underline cursor-pointer hover:text-purple duration-200"
@@ -83,9 +82,8 @@ export function Summary() {
                 Change
               </button>
             </div>
-
             <span className="text-sm leading-5 font-bold text-denim sm:text-base">
-              {priceFormatter(selectedPlan.price)}
+              {priceFormatter(selectedPlan?.price || 0)} {/* Add fallback */}
             </span>
           </div>
 
@@ -109,7 +107,7 @@ export function Summary() {
         />
       </Form.Card>
       <Footer
-        handleGoForwardStep={handleGoForwardStep}  // Submitting data when clicking next
+        handleGoForwardStep={handleGoForwardStep} // Submitting data when clicking next
         handleGoBack={handlePreviousStep}
       />
     </Fragment>

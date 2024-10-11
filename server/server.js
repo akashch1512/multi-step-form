@@ -1,26 +1,35 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
+// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
+// POST route to handle data submission
 app.post('/api/save-data', (req, res) => {
-    const data = req.body;
+    const userData = req.body; // Get the user data from the request body
+    console.log('Received data:', userData); // Log the received data for debugging
 
-    // Write data to a text file
-    fs.appendFile(path.join(__dirname, 'data.txt'), JSON.stringify(data) + '\n', (err) => {
+    // Here you can handle saving data to a database or any processing
+    // For example, if you were saving to a JSON file, you could use:
+    /*
+    const fs = require('fs');
+    fs.appendFile('data.json', JSON.stringify(userData) + '\n', (err) => {
         if (err) {
-            return res.status(500).send('Error saving data');
+            console.error('Error saving data:', err);
+            return res.status(500).send({ message: "Failed to save data" });
         }
-        res.send('Data saved successfully');
+        res.status(200).send({ message: "Data saved successfully!" });
     });
+    */
+
+    res.status(200).send({ message: "Data saved successfully!" }); // Send a success response
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

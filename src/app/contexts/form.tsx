@@ -20,14 +20,14 @@ type FormContextData = {
   dispatchEmailField: React.Dispatch<any>;
   phoneNumberField: Field;
   dispatchPhoneNumberField: React.Dispatch<any>;
-  collegeNameField: Field; // New field
-  dispatchCollegeNameField: React.Dispatch<any>; // New dispatch
-  whatYouDoField: Field; // New field
-  dispatchWhatYouDoField: React.Dispatch<any>; // New dispatch
-  departmentField: Field; // New field
-  dispatchDepartmentField: React.Dispatch<any>; // New dispatch
-  branchNameField: Field; // New field
-  dispatchBranchNameField: React.Dispatch<any>; // New dispatch
+  collegeNameField: Field; 
+  dispatchCollegeNameField: React.Dispatch<any>; 
+  whatYouDoField: Field; 
+  dispatchWhatYouDoField: React.Dispatch<any>; 
+  departmentField: Field; 
+  dispatchDepartmentField: React.Dispatch<any>; 
+  branchNameField: Field; 
+  dispatchBranchNameField: React.Dispatch<any>; 
   isYearly: boolean;
   setIsYearly: React.Dispatch<React.SetStateAction<boolean>>;
   selectedPlan: Plan;
@@ -35,6 +35,7 @@ type FormContextData = {
   addOns: { title: string, description: string, price: number }[];
   setAddOns: React.Dispatch<React.SetStateAction<{ title: string; description: string; price: number; }[]>>;
   clearForm: () => void;
+  submitForm: () => Promise<void>; // Add submit function
 }
 
 export const FormContext = createContext({
@@ -44,21 +45,22 @@ export const FormContext = createContext({
   dispatchEmailField: () => {},
   phoneNumberField: initialState,
   dispatchPhoneNumberField: () => {},
-  collegeNameField: initialState, // Initialize new field
-  dispatchCollegeNameField: () => {}, // Initialize new dispatch
-  whatYouDoField: initialState, // Initialize new field
-  dispatchWhatYouDoField: () => {}, // Initialize new dispatch
-  departmentField: initialState, // Initialize new field
-  dispatchDepartmentField: () => {}, // Initialize new dispatch
-  branchNameField: initialState, // Initialize new field
-  dispatchBranchNameField: () => {}, // Initialize new dispatch
+  collegeNameField: initialState,
+  dispatchCollegeNameField: () => {},
+  whatYouDoField: initialState,
+  dispatchWhatYouDoField: () => {},
+  departmentField: initialState,
+  dispatchDepartmentField: () => {},
+  branchNameField: initialState,
+  dispatchBranchNameField: () => {},
   isYearly: false,
   setIsYearly: () => {},
   selectedPlan: null as any,
   setSelectedPlan: () => {},
   addOns: [],
   setAddOns: () => {},
-  clearForm: () => {}
+  clearForm: () => {},
+  submitForm: async () => {} // Initialize empty submit function
 } as FormContextData);
 
 export const ACTIONS = {
@@ -121,48 +123,54 @@ export const FormProvider = ({ children }: FormProviderProps) => {
   // Add Ons
   const [addOns, setAddOns] = useState<{ title: string, description: string, price: number }[]>([]);
 
-  const { getValueFromLocalStorage, removeValueFromLocalStorage } = useLocalStorage()
-
   function clearForm() {
-    removeValueFromLocalStorage('your-info')
-    removeValueFromLocalStorage('plan')
-    removeValueFromLocalStorage('add-ons')
-
     dispatchNameField({ type: ACTIONS.SET_VALUE, value: '' })
     dispatchEmailField({ type: ACTIONS.SET_VALUE, value: '' })
     dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value: '' })
-    dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value: '' }); // Clear new field
-    dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value: '' }); // Clear new field
-    dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value: '' }); // Clear new field
-    dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value: '' }); // Clear new field
-    setIsYearly(false)
-    setSelectedPlan(null as any)
-    setAddOns([])
+    dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value: '' });
+    dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value: '' });
+    dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value: '' });
+    dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value: '' });
+    setIsYearly(false);
+    setSelectedPlan(null as any);
+    setAddOns([]);
   }
 
-  useEffect(() => {
-    const yourInfoFromLocalStorage = getValueFromLocalStorage('your-info')
-    if (yourInfoFromLocalStorage) {
-      dispatchNameField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.name })
-      dispatchEmailField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.email })
-      dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.phoneNumber })
-      dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.collegeName }) // Load new field
-      dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.whatYouDo }); // Load new field
-      dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.department }); // Load new field
-      dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value: yourInfoFromLocalStorage.branch }); // Load new field
-    }
+  // Function to submit form data to the server
+  async function submitForm() {
+    const formData = {
+      name: nameField.value,
+      email: emailField.value,
+      phoneNumber: phoneNumberField.value,
+      collegeName: collegeNameField.value,
+      whatYouDo: whatYouDoField.value,
+      department: departmentField.value,
+      branch: branchNameField.value,
+      plan: selectedPlan,
+      isYearly,
+      addOns
+    };
 
-    const planFromLocalStorage = getValueFromLocalStorage('plan')
-    if (planFromLocalStorage) {
-      setSelectedPlan(planFromLocalStorage.name)
-      setIsYearly(planFromLocalStorage.isYearly)
-    }
+    try {
+      const response = await fetch('YOUR_SERVER_ENDPOINT', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
 
-    const addOnsFromLocalStorage = getValueFromLocalStorage('add-ons')
-    if (addOnsFromLocalStorage) {
-      setAddOns(addOnsFromLocalStorage)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log('Success:', data);
+      clearForm(); // Clear the form after submission
+    } catch (error) {
+      console.error('Error submitting form:', error);
     }
-  }, [])
+  }
 
   const value = {
     nameField,
@@ -171,25 +179,26 @@ export const FormProvider = ({ children }: FormProviderProps) => {
     dispatchEmailField,
     phoneNumberField,
     dispatchPhoneNumberField,
-    collegeNameField, // Add new field
-    dispatchCollegeNameField, // Add new dispatch
-    whatYouDoField, // Add new field
-    dispatchWhatYouDoField, // Add new dispatch
-    departmentField, // Add new field
-    dispatchDepartmentField, // Add new dispatch
-    branchNameField, // Add new field
-    dispatchBranchNameField, // Add new dispatch
+    collegeNameField,
+    dispatchCollegeNameField,
+    whatYouDoField,
+    dispatchWhatYouDoField,
+    departmentField,
+    dispatchDepartmentField,
+    branchNameField,
+    dispatchBranchNameField,
     isYearly,
     setIsYearly,
     selectedPlan,
     setSelectedPlan,
     addOns,
     setAddOns,
-    clearForm
-  }
+    clearForm,
+    submitForm // Add submit function to context
+  };
 
   return (
-    <FormContext.Provider value={{ ...value }}>
+    <FormContext.Provider value={value}>
       {children}
     </FormContext.Provider>
   );

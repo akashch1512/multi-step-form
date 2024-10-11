@@ -1,15 +1,23 @@
 'use client';
 
 import { Fragment } from "react";
-
 import { useFormStep } from "../../../hooks/use-form-step";
-import { useLocalStorage } from "../../../hooks/use-local-storage";
 import { useForm } from "../../../hooks/use-form";
 import { ACTIONS } from "../../../contexts/form";
-
 import { TextInput } from "../../Form/TextInput";
 import Form from "../../Form";
 import { Footer } from "../../Footer";
+
+// Define a type for the form data
+interface FormData {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  collegeName: string;
+  whatYouDo: string;
+  department: string;
+  branchName: string;
+}
 
 export function YourInfo() {
   const {
@@ -30,7 +38,6 @@ export function YourInfo() {
   } = useForm();
 
   const { handleNextStep, handlePreviousStep } = useFormStep();
-  const { saveValueToLocalStorage } = useLocalStorage();
 
   function validateForm() {
     let formHasError = false;
@@ -86,10 +93,11 @@ export function YourInfo() {
     return !formHasError;
   }
 
+  // Store data locally without sending to server
   function handleGoForwardStep() {
     const isValid = validateForm();
     if (isValid) {
-      saveValueToLocalStorage('your-info', JSON.stringify({
+      const formData: FormData = { // Specify the type for the formData variable
         name: nameField.value,
         email: emailField.value,
         phoneNumber: phoneNumberField.value,
@@ -97,8 +105,12 @@ export function YourInfo() {
         whatYouDo: whatYouDoField.value,
         department: departmentField.value,
         branchName: branchNameField.value,
-      }));
-      handleNextStep();
+      };
+
+      // Store the formData for instance (you can replace this with your logic)
+      console.log('Form Data:', formData); // Use this to handle the data as needed
+
+      handleNextStep(); // Move to the next step after successful validation
     }
   }
 
@@ -107,7 +119,7 @@ export function YourInfo() {
       <Form.Card>
         <Form.Header
           title="Personal Info"
-          description="Please provide your name, email address, phone number, college name, occupation, department, and branch name. Kindly note that this information will be displayed on your certificates and goodies"
+          description="Please provide your name, email address, phone number, college name, occupation, department, and branch name. Kindly note that this information will be displayed on your certificates and goodies."
         />
 
         <div className="mt-5 flex flex-col gap-4">
@@ -115,64 +127,71 @@ export function YourInfo() {
             label="Name"
             placeholder="e.g. Akash Bapurao Chaudhari"
             value={nameField.value}
-            onChange={(value: string) => dispatchNameField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={nameField.errorMessage}
             clearError={() => dispatchNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={nameField.hasError}
+            name="name"
           />
           <TextInput
             label="Email Address"
             placeholder="e.g. akash@domain.com"
             value={emailField.value}
-            onChange={(value: string) => dispatchEmailField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchEmailField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={emailField.errorMessage}
             clearError={() => dispatchEmailField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={emailField.hasError}
+            name="email"
           />
           <TextInput
             label="Phone Number"
             placeholder="e.g. +91 1234 567 890"
             value={phoneNumberField.value}
-            onChange={(value: string) => dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchPhoneNumberField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={phoneNumberField.errorMessage}
             clearError={() => dispatchPhoneNumberField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={phoneNumberField.hasError}
+            name="phoneNumber"
           />
           <TextInput
             label="College Name"
             placeholder="e.g. Jawaharlal Nehru Engineering College"
             value={collegeNameField.value}
-            onChange={(value: string) => dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchCollegeNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={collegeNameField.errorMessage}
             clearError={() => dispatchCollegeNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={collegeNameField.hasError}
+            name="collegeName"
           />
           <TextInput
             label="What You Do"
-            placeholder="e.g. Student, Faculty, Business ,Entrepreneur "
+            placeholder="e.g. Student, Faculty, Business, Entrepreneur"
             value={whatYouDoField.value}
-            onChange={(value: string) => dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchWhatYouDoField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={whatYouDoField.errorMessage}
             clearError={() => dispatchWhatYouDoField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={whatYouDoField.hasError}
+            name="whatYouDo"
           />
           <TextInput
             label="Department"
             placeholder="e.g. Mechanical"
             value={departmentField.value}
-            onChange={(value: string) => dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchDepartmentField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={departmentField.errorMessage}
             clearError={() => dispatchDepartmentField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={departmentField.hasError}
+            name="department"
           />
           <TextInput
             label="Branch Name"
             placeholder="e.g. Robotics"
             value={branchNameField.value}
-            onChange={(value: string) => dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value })}
+            onChange={(name, value) => dispatchBranchNameField({ type: ACTIONS.SET_VALUE, value })}
             errorMessage={branchNameField.errorMessage}
             clearError={() => dispatchBranchNameField({ type: ACTIONS.CLEAR_ERROR })}
             hasError={branchNameField.hasError}
+            name="branchName"
           />
         </div>
       </Form.Card>
